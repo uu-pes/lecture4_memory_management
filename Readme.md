@@ -16,7 +16,7 @@ In order to work with this presentation, a few things need to be installed:
 In order to clone this repository do the following: 
 
 ```bash 
-git clone --recursive https://github.com/uu-1dt106/lecture5_memory_management.git 
+git clone --recursive https://github.com/uu-pes/lecture4_memory_management.git 
 ```
 
 ## Export slides to PDF 
