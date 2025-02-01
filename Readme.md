@@ -1,7 +1,7 @@
-# 1DT106 Lecture 5: Memory Management
+# 1DT106 Lecture 4: Memory Management
 
-This repository holds the slides for the fifth lecture in 1DT106 Programming
-Embedded Systems at Uppsala University. 
+This repository holds the slides for the fortfh lecture in 1DT106 Programming
+Embedded Systems at Uppsala University 2025 Edition. 
 
 ## Required software 
 
