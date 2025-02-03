@@ -26,79 +26,102 @@
 <!-- BEGIN SLIDES -->
 <section data-background-image="images/background.jpg" data-background-opacity="0.4">
 	<h1>Lecture 5</h1>
-	<p>Nikolaus Huber</p>
+	<p>Paul Fiterau</p>
+	<br/>
+	<footer>Based on slides by Nikolaus Huber</footer>
 </section>
 
 <section data-background-image="images/memory.jpg" data-background-opacity="0.2">
 	<h1>Memory Management</h1>
 </section>
 
+
 <section>
 	<h3>Memory Architecture</h3>
 	<ul>
-		<li class="fragment fade-up">µCs often use a Harvard architecture</li>
-		<ul>
-			<li class="fragment fade-up">Separate memory + buses for code (ROM) and data (RAM)</li>
-			<li class="fragment fade-up">Code is usually executed in place (XIP), not copied to RAM before execution</li>
+		<li class="fragment fade-up">µCs often use a (variation of) Harvard architecture</li>
+		<ul class="fragment fade-up">
+			<li>Separate memory + buses for code (ROM) and data (RAM)</li>
+			<li>Allows instructions (code) and data to be fetched simultaneously</li>
+		</ul>
+		<li class="fragment fade-up">Code is usually eXecuted In Place (XIP), not copied to RAM before execution</li>
+		<ul class="fragment fade-up">
+			<li>Saves writable memory</li>
 		</ul>
 		<li class="fragment fade-up">Some amount of RAM/ROM is integrated in the µC</li>
-		<ul>
-			<li class="fragment fade-up">Usually more ROM than RAM</li>
-		</ul>
 		<li class="fragment fade-up">Can be extended through external memory if needed</li>
 		<li class="fragment fade-up">RP2040 actually relies on external ROM</li>
 	</ul>
 </section>
 
+<!--<section>
+	<h3>Memory Technologies</h3>
+	<ul>
+		<li>Random-Access Memory (RAM)</li>
+		<li>Read-only Memory (ROM)</li>
+		
+	</ul>
+</section> -->
+
 <section>
 	<h3>Read-only Memory (ROM)</h3>
 	<ul>
+		<li class="fragment fade-up">Non-volatile: preserves contents when power is off</li>
 		<li class="fragment fade-up">Used to store code + constant data (e.g. lookup tables)</li>
+		<!-- Tables for measuring unit conversion, etc.-->
 		<li class="fragment fade-up">Unrestricted reading, usually difficult to write</li>
 		<li class="fragment fade-up">Most common (today): Flash memory</li>
+		<ul class="fragment fade-up">
+			<li>Fast reads</li>
+			<li>Slow writes, limited in number, "coarse"</li>
+		</ul> 
 		<li class="fragment fade-up">Other kinds do exist: PROM, UV-EPROM, EEPROM</li>
-		<li class="fragment fade-up">Pico Board has 2MB of Flash (external)</li>
+		<li class="fragment fade-up">Pico Board has 2MB Flash (external), RP2040 has on-chip 16kB ROM</li>
 	</ul>
 </section>
 
 <section>
 	<h3>Random-Access Memory (RAM)</h3>
 	<ul>
+		<li class="fragment fade-up">Volatile: losses contents when power is off</li>
 		<li class="fragment fade-up">Used for data (e.g. stack, heap)</li>
-		<ul>
-			<li class="fragment fade-up">Can also be use for code (more uncommon)</li>
-		</ul>
-		<li class="fragment fade-up">Two main kinds in use today: SRAM, DRAM</li>
-		<li class="fragment fade-up">Can be accessed through caches</li>
-		<ul>
-			<li class="fragment fade-up">Not so common for internal RAM in µC (why?)</li>
+		<li class="fragment fade-up">Unrestricted reading and writing</li>
+		<li class="fragment fade-up">Two kinds in use today: SRAM, DRAM</li>
+		<li class="fragment fade-up">SRAM: faster but larger and more expensive</li>
+		<li class="fragment fade-up">DRAM: cheaper and denser, but needs to be refreshed</li>
+		<ul class="fragment fade-up">
+			<li>May cause unwanted variability in memory access times (wait or refresh...)</li>
 		</ul>
 		<li class="fragment fade-up">RP2040 has 265kB on-chip SRAM</li>
 	</ul>
 </section>
 
+
 <section>
-	<img class="r-stretch" src="images/rp2040.png">
+	<img src="images/rp2040.png" >
 	<div class="citation">
 		<div class="source">RP2040 Datasheet</div>
 	</div>
 </section>
 
 <section>
-	<img class="r-stretch" src="images/rp2040_memory.png">
-	<div class="citation">
-		<div class="source">RP2040 Datasheet</div>
-	</div>
-</section>
-
-<section>
-	<h3>ARM Cortex-M0 layout</h3>
+	<h3>Address Map</h3>
 	<ul>
-		<li class="fragment fade-up">Processor has a fixed memory map providing up to 4GB of addressable memory</li>
-		<li class="fragment fade-up">RAM, ROM, peripheral registers, ... are mapped into different memory regions</li>
+		<li>Determines how addreses get mapped to hardware</li>
+		<li class="fragment fade-up">Address space determined by processor address width</li>
+		<ul>
+			<li class="fragment fade-up">Cortex M0+ has 32 bit addresses => 2^32 address space (4GB)</li>
+		</ul>
+		<li class="fragment fade-up">RAM, ROM, peripheral registers, ... are mapped into different address regions</li>
 		<li class="fragment fade-up">Details depend on the implemenentation of the chip</li>
-		<li class="fragment fade-up">For example: Section 2.2. Address Map (RP2040 datasheet)</li>
 	</ul>
+</section>
+
+<section>
+	<h3>Address Map of ARM Cortex M0+</h3>
+	<img src="images/CortexM3-memory_map.png" width="40%"
+		height="40%">
+	<ul class="fragment fade-up"><li>Check RP2040 Datasheet (Section 2.6) for specifics</li></ul>
 </section>
 
 <section>
@@ -153,37 +176,62 @@
 	</ul>
 </section>
 
+
+<section>
+	<h3>Examples of Bit Set and Clear Registers in RP20240</h3>
+	<ul>
+		<li>GPIO_OUT sets output level (1/0 → high/low) for GPIO0…29</li>
+		<li class="fragment fade-up">GPIO_OUT_SET performs atomic bit-set on GPIO_OUT</li>
+		<ul class="fragment fade-up">
+			<li>Effectively: GPIO_OUT = GPIO_OUT | wdata</li>
+		</ul>
+		<li class="fragment fade-up">GPIO_OUT_CLR performs atomic bit-clear on GPIO_OUT</li>
+		<ul class="fragment fade-up">
+			<li>Effectively: GPIO_OUT = GPIO_OUT = GPIO_OUT & ~wdata</li>
+		</ul>
+		<li class="fragment fade-up">Check RP2040 Datasheet (p. 46) for specifics</li>
+	</ul>
+</section>
+
 <section>
 	<h3>Ways to manage memory</h3>
 	<ul>
 		<li class="fragment fade-up">At compile time (statically)</li>
-		<li class="fragment fade-up">At startup time</li>
 		<li class="fragment fade-up">At runtime (dynamically)</li>
 	</ul>
 </section>
 
+
+<section>
+	<h3>Management at compile time</h3>
+	<img class="r-stretch" src="images/prog_to_mem_init.png" width="100%" height="100%">
+</section>
+
+<section>
+	<h3>Management at compile time</h3>
+	<img class="r-stretch" src="images/prog_to_mem_full.png" width="100%" height="100%">
+</section>
+
 <section>
 	<h3>Management at compile time</h3>
 	<ul>
-		<li class="fragment fade-up">Compiler/Linker creates segments for different kinds of data/code</li>
+		<li>Compiler/Linker creates sections for different kinds of data/code</li>
 		<ul>
-			<li class="fragment fade-up">Code (.text)</li>
-			<li class="fragment fade-up">Read-only data (.rodata)</li>
-			<li class="fragment fade-up">Read-write data (.data)</li>
-			<li class="fragment fade-up">Zero-initialized read-write data (.bss)</li>
+			<li>Code (.text)</li>
+			<li>Read-only data (.rodata)</li>
+			<li>Read-write data (.data)</li>
+			<li>Zero-initialized read-write data (.bss)</li>
 		</ul>
-		<li class="fragment fade-up">More segments possible, depends on implementation and compiler/linker</li>
-		<li class="fragment fade-up">Code/data is flashed to µC, RAM is initialized during start-up</li>
+		<li>More sections possible, depends on implementation and compiler/linker</li>
+		<li>Code/data is flashed to µC, RAM is initialized during start-up</li>
 	</ul>
 </section>
 
-
-
 <section>
 	<h3>Management at compile time</h3>
 	<ul>
-		<li class="fragment fade-up">Mapping of data to segments can be automatic (static, const) or explicit (compiler specific, gcc: #pragma)</li>
-		<li class="fragment fade-up">Layout of segments in memory can be chosen in linker file</li>
+		<li class="fragment fade-up">Mapping of data to sections can be automatic (static, const) or explicit (compiler specific, gcc: #pragma)</li>
+		<li class="fragment fade-up">Layout of sections in memory can be chosen in linker script</li>
 		<li class="fragment fade-up">Examples (assume global variables)</li>
 		<ul>
 			<li class="fragment fade-up">char rwData[100]; => .bss, RAM</li>
@@ -194,39 +242,27 @@
 </section>
 
 <section data-background-image="images/code.jpg" data-background-opacity="0.4">
-	<h1>Example - Linker file </h1>
-</section>
+	<h1>Example - ELF</h1>
 
-<section>
-	<h3>Memory in embedded systems</h3>
-	<ul>
-		<li class="fragment fade-up">Most common way of memory management</li>
-		<ul>
-			<li class="fragment fade-up">Allocate all required memory at compile time</li>
-			<li class="fragment fade-up">Sometimes enforced by coding standards</li>
-			<li class="fragment fade-up">Little risk of runtime errors due to memory management problems</li>
-		</ul>
-		<li class="fragment fade-up">Dynamic memory management</li>
-		<ul>
-			<li class="fragment fade-up">Manual management: malloc( ), free( )</li>
-			<li class="fragment fade-up">More flexible, might be necessary in some cases</li>
-		</ul>
-	</ul>
+	<aside class="notes">
+		run command
+			arm-none-eabi-objdump -h blinky.elf
+		to show sections
+	</aside>
 </section>
 
 <section>
 	<h3>Dynamic memory management</h3>
 	<ul>
+		<li class="fragment fade-up">Manual management: malloc( ), free( )</li>
+		<li class="fragment fade-up">More flexible, might be necessary in some cases</li>
 		<li class="fragment fade-up">Can cause various problems</li>
 		<ul>
 			<li class="fragment fade-up">Possibly insufficient memory during runtime</li>
+			<li class="fragment fade-up">Memory leaks (did you free?)</li>
 			<li class="fragment fade-up">Fragmentation</li>
 			<li class="fragment fade-up">Implementation of malloc and free can be of substantial size</li>
 			<li class="fragment fade-up">Are malloc and free reentrant functions?</li>
-		</ul>
-		<li class="fragment fade-up">Sometimes compromise: no free, only use malloc during start-up</li>
-		<ul>
-			<li class="fragment fade-up">Easier to test and verify</li>
 		</ul>
 	</ul>
 </section>
@@ -248,11 +284,27 @@
 				<li>Heaps can be created with K_HEAP_DEFINE</li>
 				<li>Can use k_heap_alloc and k_heap_free</li>
 				<li>Use of libc malloc and free is discouraged</li>
-				<li>For more info look into the Zephyr documentation!</li>
+				<li>For more info look into the <a href="https://docs.zephyrproject.org/apidoc/latest/group__heap__apis.html">documentation</a>!</li>
 			</ul>
 		</ul>
 	</ul>
 </section>
+
+<section>
+	<h3>Memory anagement best practice</h3>
+	<ul>
+		<li class="fragment fade-up">Allocate all required memory at compile time</li>
+		<li class="fragment fade-up">Sometimes enforced by coding standards</li>
+		<div class ="fragment fade-up citation">
+			<div class="cite">Dir 4.12 Dynamic memory allocation shall not be used</div>
+			<div class="source">
+				MISRA C:2012
+			</div>
+		</div>
+		<li class="fragment fade-up">Little risk of runtime errors due to memory management problems</li>
+	</ul>
+</section>
+
 
 <section>
 	<h3>Task stack overflow detection</h3>
@@ -272,6 +324,24 @@
 		<li class="fragment fade-up">In Zephyr only used when there is no MPU</li>
 	</ul>
 </section>
+
+
+<section>
+	<h3>Memory protection unit</h3>
+	<ul>
+		<li class="fragment fade-up">Allows access rules to be set up for privileged access and user program access</li>
+		<li class="fragment fade-up">When an access rule is violated => fault exception</li>
+		<li class="fragment fade-up">Example usages:</li>
+		<ul>
+			<li class="fragment fade-up">MPU can protect data that belongs to the OS from user programs</li>
+			<li class="fragment fade-up">MPU can set certain memory regions read-only to prevent accidentally erasing configuration data</li>
+			<li class="fragment fade-up">MPU can shield different tasks in a multitasking system</li>
+		</ul>
+		<li class="fragment fade-up">More info: <a href="https://developer.arm.com/documentation/ddi0439/b/Memory-Protection-Unit?lang=en">ARM Developer Manual</a></li>
+	</ul>
+</section>
+
+<!--
 
 <section>
 	<h3>Processor modes</h3>
@@ -316,21 +386,7 @@
 		<div class="source">Adapted from: The Definite Guide to ARM Cortex-M3 and Cortex-M4 Processors, Joseph Yiu, 3rd Edition</div>
 	</div>
 </section>
-
-<section>
-	<h3>Memory protection unit</h3>
-	<ul>
-		<li class="fragment fade-up">Allows access rules to be set up for privileged access and user program access</li>
-		<li class="fragment fade-up">When an access rule is violated => fault exception</li>
-		<li class="fragment fade-up">Example usages:</li>
-		<ul>
-			<li class="fragment fade-up">MPU can protect data that belongs to the OS from user programs</li>
-			<li class="fragment fade-up">MPU can set certain memory regions read-only to prevent accidentally erasing configuration data</li>
-			<li class="fragment fade-up">MPU can shield different tasks in a multitasking system</li>
-		</ul>
-		<li class="fragment fade-up">More info: <a href="https://developer.arm.com/documentation/ddi0439/b/Memory-Protection-Unit?lang=en">ARM Developer Manual</a></li>
-	</ul>
-</section>
+-->
 
 <section>
 	<h1>Thanks for today!</h1>
