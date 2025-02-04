@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>Lecture 5</title>
+		<title>Lecture 4</title>
 
 		<link rel="shortcut icon" type="image/x-icon" href="uu_logo/UU_logo_color-cropped.ico">
 
@@ -113,7 +113,7 @@
 			<li class="fragment fade-up">Cortex M0+ has 32 bit addresses => 2^32 address space (4GB)</li>
 		</ul>
 		<li class="fragment fade-up">RAM, ROM, peripheral registers, ... are mapped into different address regions</li>
-		<li class="fragment fade-up">Details depend on the implemenentation of the chip</li>
+		<li class="fragment fade-up">Details depend on the implementation of the chip</li>
 	</ul>
 </section>
 
@@ -152,6 +152,11 @@
 		<li class="fragment fade-up">Used for example by STM32 chips</li>
 		<li class="fragment fade-up">More info: <a href="https://developer.arm.com/documentation/ddi0439/b/Programmers-Model/Bit-banding">ARM Developer Manual</a></li>
 	</ul>
+</section>
+
+<section>
+	<h3>Solution 1 - Bit-Banding</h3>
+	<img class="r-stretch" src="images/bit_band.png" width="100%" height="100%">
 </section>
 
 <section>
@@ -242,7 +247,8 @@
 </section>
 
 <section data-background-image="images/code.jpg" data-background-opacity="0.4">
-	<h1>Example - ELF</h1>
+	<h1>Example - ELF and 
+		<a href="https://github.com/raspberrypi/pico-sdk/blob/master/src/rp2_common/pico_crt0/rp2040/memmap_default.ld">Linker File</a></h1>
 
 	<aside class="notes">
 		run command
@@ -302,9 +308,28 @@
 			</div>
 		</div>
 		<li class="fragment fade-up">Little risk of runtime errors due to memory management problems</li>
+		<li class="fragment fade-up">If dynamic allocation is unavoidable, do it only at start-up</li>
 	</ul>
 </section>
 
+<section>
+	<h3>Recursive Factorial - Problems?</h3>
+
+	<pre class="C"><code data-trim data-noescape>
+		#include <zephyr/kernel.h>
+		#define STACK_SIZE  100 
+
+		int factorial(int i) {
+			if (i == 1) {
+				return 1;	
+			} else {
+				return i * factorial(i-1);
+			}
+		}
+
+		...
+	</code></pre>
+</section>
 
 <section>
 	<h3>Task stack overflow detection</h3>
@@ -315,27 +340,26 @@
 			<li class="fragment fade-up">Periodically check wether that data is still there</li>
 		</ul>
 		<li class="fragment fade-up">In Zephyr => CONFIG_STACK_SENTINEL, gets checked at</li>
-		<ul>
-			<li class="fragment fade-up">Context switch</li>
-			<li class="fragment fade-up">Hardware interrupts</li>
-			<li class="fragment fade-up">Thread returns from entry point</li>
-			<li class="fragment fade-up">k_yield</li>
+		<ul class="fragment fade-up">
+			<li>Context switch</li>
+			<li>Hardware interrupts</li>
+			<li>Thread returns from entry point</li>
+			<li>k_yield</li>
 		</ul>
 		<li class="fragment fade-up">In Zephyr only used when there is no MPU</li>
 	</ul>
 </section>
 
-
 <section>
 	<h3>Memory protection unit</h3>
 	<ul>
-		<li class="fragment fade-up">Allows access rules to be set up for privileged access and user program access</li>
+		<li class="fragment fade-up">Can define access rules (e.g., privileged only vs full) for different memory regions</li>
 		<li class="fragment fade-up">When an access rule is violated => fault exception</li>
-		<li class="fragment fade-up">Example usages:</li>
+		<li class="fragment fade-up">MPU can be used to, e.g.:</li>
 		<ul>
-			<li class="fragment fade-up">MPU can protect data that belongs to the OS from user programs</li>
-			<li class="fragment fade-up">MPU can set certain memory regions read-only to prevent accidentally erasing configuration data</li>
-			<li class="fragment fade-up">MPU can shield different tasks in a multitasking system</li>
+			<li class="fragment fade-up">prevent tasks from corrupting stack/memory of other tasks and OS</li>
+			<li class="fragment fade-up">set certain memory regions read-only to prevent accidentally erasing configuration data</li>
+			<li class="fragment fade-up">prevent unpriviledged tasks from accessing peripherals</li>
 		</ul>
 		<li class="fragment fade-up">More info: <a href="https://developer.arm.com/documentation/ddi0439/b/Memory-Protection-Unit?lang=en">ARM Developer Manual</a></li>
 	</ul>
